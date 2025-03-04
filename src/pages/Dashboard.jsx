@@ -10,7 +10,7 @@ const Dashboard = () => {
         losses: 20,
         winrate: 60,
         rating: 1450,
-        ratingHistory: [1200, 1250, 1300, 1350, 1400, 1450],
+        ratingHistory: [1200, 1250, 1300, 1350, 1400, 1450], // 🔥 История рейтинга для графика
     });
 
     const [replays, setReplays] = useState([
@@ -76,7 +76,7 @@ const Dashboard = () => {
                 </div>
             </div>
 
-            {/* График рейтинга */}
+            {/* 🔥 График рейтинга ELO */}
             <div className="card p-4 mt-4 shadow">
                 <h5 className="text-center">📊 Динамика рейтинга</h5>
                 <Line

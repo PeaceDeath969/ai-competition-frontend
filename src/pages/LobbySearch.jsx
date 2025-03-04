@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "./LobbySearch.css";
 
-const LobbySearch = ({ onCancel }) => {
+const LobbySearch = () => {
     const [status, setStatus] = useState("searching");
     const [timer, setTimer] = useState(0);
     const navigate = useNavigate();
@@ -15,12 +15,11 @@ const LobbySearch = ({ onCancel }) => {
             setTimer((prev) => prev + 1);
         }, 1000);
 
-        // Сперва ждём 5 секунд, затем меняем статус
+        // Через 5 секунд находим соперника и переходим в лобби
         const findOpponent = setTimeout(() => {
             console.log("🎉 Соперник найден!");
             setStatus("found");
 
-            // Через 2 сек после нахождения соперника → переходим в лобби
             setTimeout(() => {
                 console.log("➡ Переход в лобби...");
                 navigate("/game-lobby");
@@ -49,8 +48,6 @@ const LobbySearch = ({ onCancel }) => {
                                 style={{ width: `${(timer / 5) * 100}%` }}
                             ></div>
                         </div>
-
-                        <button className="btn btn-danger mt-3" onClick={onCancel}>❌ Отмена</button>
                     </>
                 ) : (
                     <>

@@ -19,7 +19,6 @@ const App = () => {
             <Routes>
                 <Route path="/" element={<Home />} />
                 <Route path="/lobby-search" element={<LobbySearch />} />
-                <Route path="/game-lobby" element={<GameLobby />} /> {/* ✅ Должен быть точно так же */}
             </Routes>
         </Router>
     );

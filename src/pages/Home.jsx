@@ -2,7 +2,6 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "./Home.css";
-import LobbySearch from "./LobbySearch";
 
 const Home = () => {
     const [searching, setSearching] = useState(false);
@@ -16,17 +15,14 @@ const Home = () => {
                 <p className="hero-subtitle">Соревнуйтесь в программировании искусственного интеллекта!</p>
 
                 <div className="mt-4">
-                    <button className="btn btn-primary btn-lg me-3" onClick={() => setSearching(true)}>
+                    <Link to="/lobby-search" className="btn btn-primary btn-lg me-3">
                         🚀 Начать игру
-                    </button>
+                    </Link>
                     <Link to="/profile" className="btn btn-outline-light btn-lg">
                         🔍 Узнать больше
                     </Link>
                 </div>
             </div>
-
-            {/* Модальное окно поиска */}
-            {searching && <LobbySearch onCancel={() => setSearching(false)} />}
         </div>
     );
 };

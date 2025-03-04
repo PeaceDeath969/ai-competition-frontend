@@ -1,0 +1,42 @@
+.bomberman-container {
+    display: flex;
+    flex-direction: column;
+    width: fit-content;
+    margin: auto;
+    margin-top: 20px;
+    background-color: #222;
+    padding: 10px;
+    border-radius: 10px;
+}
+
+.row {
+    display: flex;
+}
+
+.cell {
+    width: 50px;
+    height: 50px;
+    border: 1px solid #555;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #333;
+}
+
+.cell.wall {
+    background-color: #666;
+}
+
+/* ✅ Стилизация игроков как анимированные кружки */
+.player {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.3);
+    transition: transform 0.1s ease-in-out;
+}
+
+/* ✅ Добавляем небольшую анимацию, когда игрок двигается */
+.player:active {
+    transform: scale(0.9);
+}
