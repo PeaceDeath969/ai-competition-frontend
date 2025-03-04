@@ -1,0 +1,18 @@
+{
+  "profile": {
+    "title": "Profile Editing",
+    "name": "Name",
+    "email": "Email",
+    "save": "Save Changes",
+    "delete_avatar": "Delete Avatar",
+    "drag_drop": "Drag & drop an image or click to select",
+    "password_change": "Change Password",
+    "current_password": "Current Password",
+    "new_password": "New Password",
+    "confirm_password": "Confirm New Password",
+    "change_password": "Change Password",
+    "password_mismatch": "❌ Error: Passwords do not match!",
+    "password_success": "✅ Password successfully changed!",
+    "theme_toggle": "🌙 Toggle Dark Mode"
+  }
+}
