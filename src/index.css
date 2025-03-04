@@ -24,6 +24,29 @@
   --dropzone-text: #aaa;
 }
 
+.password-strength {
+  height: 5px;
+  border-radius: 3px;
+  margin-top: 5px;
+  transition: width 0.3s ease-in-out, background-color 0.3s ease-in-out;
+}
+
+.weak {
+  width: 33%;
+  background-color: #e74c3c; /* Красный */
+}
+
+.medium {
+  width: 66%;
+  background-color: #f39c12; /* Оранжевый */
+}
+
+.strong {
+  width: 100%;
+  background-color: #2ecc71; /* Зелёный */
+}
+
+
 body {
   background-color: var(--bg-color);
   color: var(--text-color);

@@ -19,6 +19,7 @@ const Profile = () => {
     const [loading, setLoading] = useState(false);
     const [message, setMessage] = useState("");
     const [passwordClass, setPasswordClass] = useState(""); // Анимация
+    const [passwordStrength, setPasswordStrength] = useState(""); // Индикатор сложности пароля
 
     const [passwordData, setPasswordData] = useState({
         currentPassword: "",
@@ -76,6 +77,13 @@ const Profile = () => {
         alert("Профиль обновлен!");
     };
 
+    // Функция определения сложности пароля
+    const checkPasswordStrength = (password) => {
+        if (password.length < 6) return "weak";
+        if (password.length < 10) return "medium";
+        return "strong";
+    };
+
     const handleChangePassword = () => {
         if (!passwordData.currentPassword || !passwordData.newPassword || !passwordData.confirmNewPassword) {
             setMessage("❌ Ошибка: Все поля должны быть заполнены!");
@@ -96,6 +104,7 @@ const Profile = () => {
         setTimeout(() => setPasswordClass(""), 1500);
 
         setPasswordData({ currentPassword: "", newPassword: "", confirmNewPassword: "" });
+        setPasswordStrength(""); // Сбрасываем индикатор сложности
     };
 
     return (
@@ -148,8 +157,16 @@ const Profile = () => {
                                 className="form-control"
                                 name="newPassword"
                                 value={passwordData.newPassword}
-                                onChange={(e) => setPasswordData({ ...passwordData, newPassword: e.target.value })}
+                                onChange={(e) => {
+                                    const newPassword = e.target.value;
+                                    setPasswordData({ ...passwordData, newPassword });
+                                    setPasswordStrength(checkPasswordStrength(newPassword));
+                                }}
                             />
+                            {/* Индикатор сложности пароля */}
+                            {passwordData.newPassword && (
+                                <div className={`password-strength ${passwordStrength}`}></div>
+                            )}
                         </div>
                         <div className="mb-3">
                             <label className="form-label">Подтвердите новый пароль</label>
