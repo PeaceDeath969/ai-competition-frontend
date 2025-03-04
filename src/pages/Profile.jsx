@@ -3,6 +3,7 @@ import { useDropzone } from "react-dropzone";
 import imageCompression from "browser-image-compression";
 import useAuthStore from "../store/authStore";
 import useThemeStore from "../store/themeStore";
+import "bootstrap/dist/css/bootstrap.min.css";
 
 const Profile = () => {
     const { user, login } = useAuthStore();
@@ -19,7 +20,8 @@ const Profile = () => {
     const [loading, setLoading] = useState(false);
     const [message, setMessage] = useState("");
     const [passwordClass, setPasswordClass] = useState(""); // Анимация
-    const [passwordStrength, setPasswordStrength] = useState(""); // Индикатор сложности пароля
+    const [passwordStrength, setPasswordStrength] = useState(0);
+    const [passwordColor, setPasswordColor] = useState("bg-danger");
 
     const [passwordData, setPasswordData] = useState({
         currentPassword: "",
@@ -77,11 +79,24 @@ const Profile = () => {
         alert("Профиль обновлен!");
     };
 
-    // Функция определения сложности пароля
     const checkPasswordStrength = (password) => {
-        if (password.length < 6) return "weak";
-        if (password.length < 10) return "medium";
-        return "strong";
+        let strength = 0;
+        if (password.length > 5) strength += 25;
+        if (password.length > 8) strength += 25;
+        if (/[A-Z]/.test(password)) strength += 25;
+        if (/\d/.test(password) || /[@$!%*?&]/.test(password)) strength += 25;
+
+        setPasswordStrength(strength);
+
+        if (strength <= 25) {
+            setPasswordColor("bg-danger"); // Красный - слабый
+        } else if (strength <= 50) {
+            setPasswordColor("bg-warning"); // Оранжевый - средний
+        } else if (strength <= 75) {
+            setPasswordColor("bg-info"); // Голубой - хороший
+        } else {
+            setPasswordColor("bg-success"); // Зелёный - сильный
+        }
     };
 
     const handleChangePassword = () => {
@@ -104,7 +119,7 @@ const Profile = () => {
         setTimeout(() => setPasswordClass(""), 1500);
 
         setPasswordData({ currentPassword: "", newPassword: "", confirmNewPassword: "" });
-        setPasswordStrength(""); // Сбрасываем индикатор сложности
+        setPasswordStrength(0);
     };
 
     return (
@@ -160,12 +175,17 @@ const Profile = () => {
                                 onChange={(e) => {
                                     const newPassword = e.target.value;
                                     setPasswordData({ ...passwordData, newPassword });
-                                    setPasswordStrength(checkPasswordStrength(newPassword));
+                                    checkPasswordStrength(newPassword);
                                 }}
                             />
-                            {/* Индикатор сложности пароля */}
                             {passwordData.newPassword && (
-                                <div className={`password-strength ${passwordStrength}`}></div>
+                                <div className="progress mt-2">
+                                    <div
+                                        className={`progress-bar ${passwordColor}`}
+                                        role="progressbar"
+                                        style={{ width: `${passwordStrength}%` }}
+                                    />
+                                </div>
                             )}
                         </div>
                         <div className="mb-3">
