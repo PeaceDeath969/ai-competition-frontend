@@ -4,6 +4,8 @@ import Home from "./pages/Home";
 import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
 import Profile from "./pages/Profile";
+import LobbySearch from "./pages/LobbySearch";
+import GameLobby from "./pages/GameLobby";
 import ProtectedRoute from "./components/ProtectedRoute";
 
 const Router = () => (
@@ -12,6 +14,8 @@ const Router = () => (
         <Routes>
             <Route path="/" element={<Home />} />
             <Route path="/login" element={<Login />} />
+            <Route path="/lobby-search" element={<LobbySearch />} />
+            <Route path="/game-lobby" element={<GameLobby />} /> {}
             <Route
                 path="/dashboard"
                 element={
