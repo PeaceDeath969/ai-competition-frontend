@@ -9,7 +9,7 @@ import "bootstrap/dist/css/bootstrap.min.css";
 
 const Profile = () => {
     const { t, i18n } = useTranslation();
-    const { user, login } = useAuthStore();
+    const { user, login, changePassword } = useAuthStore();
     const { theme, toggleTheme } = useThemeStore();
     const defaultAvatar = "https://avatars.mds.yandex.net/i?id=2bbfe5cb7ce6fba0a6be87eb6f26d8d2_l-5113868-images-thumbs&n=13";
 
@@ -103,29 +103,34 @@ const Profile = () => {
         }
     };
 
-    const handleChangePassword = () => {
+    // 🔥 Функция смены пароля через API с подтверждением
+    const handleChangePassword = async () => {
+        setMessage("");
+        setPasswordClass("");
+
         if (!passwordData.currentPassword || !passwordData.newPassword || !passwordData.confirmNewPassword) {
-            setMessage(t("profile.password_error"));
+            setMessage("Введите все поля");
             setPasswordClass("error-animation");
-            setTimeout(() => setPasswordClass(""), 1500);
             return;
         }
 
         if (passwordData.newPassword !== passwordData.confirmNewPassword) {
-            setMessage(t("profile.password_mismatch"));
+            setMessage("Пароли не совпадают");
             setPasswordClass("error-animation");
-            setTimeout(() => setPasswordClass(""), 1500);
             return;
         }
 
-        // Здесь можно добавить проверку текущего пароля через API
+        const result = await changePassword(passwordData.currentPassword, passwordData.newPassword);
 
-        setMessage(t("profile.password_success"));
-        setPasswordClass("success-animation");
-        setTimeout(() => setPasswordClass(""), 1500);
-
-        setPasswordData({ currentPassword: "", newPassword: "", confirmNewPassword: "" });
-        setPasswordStrength(0);
+        if (result.success) {
+            setMessage("Пароль успешно изменён!");
+            setPasswordClass("success-animation");
+            setPasswordData({ currentPassword: "", newPassword: "", confirmNewPassword: "" });
+            setPasswordStrength(0);
+        } else {
+            setMessage(result.error);
+            setPasswordClass("error-animation");
+        }
     };
 
     const changeLanguage = (lng) => {
@@ -146,6 +151,7 @@ const Profile = () => {
                         </button>
                     </div>
 
+                    {/* 🔵 Аватарка + Drag & Drop */}
                     <div className="card p-4 shadow">
                         <h2 className="text-center mb-3">{t("profile.title")}</h2>
                         <div className="text-center">
@@ -167,25 +173,18 @@ const Profile = () => {
                         </button>
                     </div>
 
-                    <div className={`card p-4 shadow mt-4 ${passwordClass}`}>
-                        <h4 className="text-center mb-3">{t("profile.password_change")}</h4>
+                    {/* 🔐 Форма смены пароля */}
+                    <div className="card p-4 shadow mt-4">
+                        <h4 className="text-center mb-3">🔐 Смена пароля</h4>
                         {message && <div className="alert alert-info">{message}</div>}
                         <div className="mb-3">
-                            <label className="form-label">{t("profile.current_password")}</label>
-                            <input type="password" className="form-control"
-                                   value={passwordData.currentPassword}
-                                   onChange={(e) => setPasswordData({ ...passwordData, currentPassword: e.target.value })}
-                            />
+                            <input type="password" className="form-control" placeholder="Старый пароль" value={passwordData.currentPassword} onChange={(e) => setPasswordData({ ...passwordData, currentPassword: e.target.value })} />
                         </div>
                         <div className="mb-3">
-                            <label className="form-label">{t("profile.new_password")}</label>
-                            <input type="password" className="form-control"
-                                   value={passwordData.newPassword}
-                                   onChange={(e) => {
-                                       setPasswordData({ ...passwordData, newPassword: e.target.value });
-                                       checkPasswordStrength(e.target.value);
-                                   }}
-                            />
+                            <input type="password" className="form-control" placeholder="Новый пароль" value={passwordData.newPassword} onChange={(e) => {
+                                setPasswordData({ ...passwordData, newPassword: e.target.value });
+                                checkPasswordStrength(e.target.value);
+                            }} />
                             {passwordData.newPassword && (
                                 <div className="progress mt-2">
                                     <div className={`progress-bar ${passwordColor}`} role="progressbar" style={{ width: `${passwordStrength}%` }} />
@@ -193,21 +192,9 @@ const Profile = () => {
                             )}
                         </div>
                         <div className="mb-3">
-                            <label className="form-label">{t("profile.confirm_password")}</label>
-                            <input type="password" className="form-control"
-                                   value={passwordData.confirmNewPassword}
-                                   onChange={(e) => setPasswordData({ ...passwordData, confirmNewPassword: e.target.value })}
-                            />
+                            <input type="password" className="form-control" placeholder="Подтвердите новый пароль" value={passwordData.confirmNewPassword} onChange={(e) => setPasswordData({ ...passwordData, confirmNewPassword: e.target.value })} />
                         </div>
-                        <button className="btn btn-warning w-100" onClick={handleChangePassword}>
-                            {t("profile.change_password")}
-                        </button>
-                    </div>
-
-                    <div className="text-center mt-4">
-                        <button className="btn btn-secondary" onClick={toggleTheme}>
-                            {t("profile.theme_toggle")}
-                        </button>
+                        <button className="btn btn-warning w-100" onClick={handleChangePassword}>🔄 Изменить пароль</button>
                     </div>
                 </div>
             </div>
