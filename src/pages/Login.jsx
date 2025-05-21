@@ -11,13 +11,13 @@ const Login = () => {
 
     const handleLogin = async (e) => {
         e.preventDefault();
-        setError(""); // Очистка ошибок перед отправкой
+        setError("");
 
         const result = await login(email, password);
         if (result.success) {
-            navigate("/dashboard"); // ✅ Если вход успешен, перенаправляем в кабинет
+            navigate("/dashboard");
         } else {
-            setError(result.error); // Показываем ошибку пользователю
+            setError(result.error);
         }
     };
 

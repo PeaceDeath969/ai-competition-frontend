@@ -1,66 +1,86 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
+import api from "../api";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "./GameLobby.css";
 
+const POLL_INTERVAL = 3000;
+
 const GameLobby = () => {
     const navigate = useNavigate();
-    const [players, setPlayers] = useState([
-        { id: 1, name: "Игрок 1", avatar: "https://i.pravatar.cc/100?img=1", ready: false },
-        { id: 2, name: "Игрок 2", avatar: "https://i.pravatar.cc/100?img=2", ready: false }
-    ]);
-    const [timer, setTimer] = useState(null); // Таймер перед началом игры
+    const location = useLocation();
+    const { lobby } = location.state || {};
 
-    const handleReady = (id) => {
-        setPlayers((prev) =>
-            prev.map((player) => (player.id === id ? { ...player, ready: true } : player))
-        );
-    };
-
-    // ✅ Запуск таймера, когда все игроки готовы
     useEffect(() => {
-        if (players.every((player) => player.ready)) {
-            setTimer(5); // Таймер на 5 секунд перед стартом
+        if (!lobby) {
+            navigate("/");
         }
-    }, [players]);
+    }, [lobby, navigate]);
 
-    // ✅ Обратный отсчёт и переход в игру
+    const [players, setPlayers] = useState(lobby?.players || []);
+    const gameId = lobby?.game_id;
+
     useEffect(() => {
-        if (timer !== null && timer > 0) {
-            const countdown = setTimeout(() => setTimer((prev) => prev - 1), 1000);
-            return () => clearTimeout(countdown);
-        } else if (timer === 0) {
-            console.log("➡ Переход в игру...");
-            navigate("/game", { state: { players } }); // ✅ Передаём список игроков в `state`
-        }
-    }, [timer, navigate, players]);
+        if (!gameId) return;
+
+        const fetchLobby = async () => {
+            try {
+                const response = await api.post(`/join_lobby/${gameId}`);
+                setPlayers(response.data.players);
+            } catch (error) {
+                console.error("Ошибка обновления лобби:", error);
+            }
+        };
+
+        fetchLobby();
+        const intervalId = setInterval(fetchLobby, POLL_INTERVAL);
+
+        return () => clearInterval(intervalId);
+    }, [gameId]);
+
+    const invitationLink = `${gameId}`;
 
     return (
         <div className="lobby-container">
             <h2 className="text-center mb-4">🏆 Лобби перед матчем</h2>
 
-            <div className="players-list">
-                {players.map((player) => (
-                    <div key={player.id} className="player-card">
-                        <img src={player.avatar} alt={player.name} className="player-avatar" />
-                        <h5>{player.name}</h5>
-                        {player.ready ? <span className="text-success">✅ Готов</span> : <span className="text-warning">⏳ Ожидает...</span>}
-                        {!player.ready && (
-                            <button className="btn btn-success" onClick={() => handleReady(player.id)}>Я готов</button>
-                        )}
-                    </div>
-                ))}
+            <div className="alert alert-info text-center">
+                Пригласительный код:
+                <div className="mt-2">
+                    <code>{invitationLink}</code>
+                </div>
             </div>
 
-            {/* ✅ Таймер перед стартом игры */}
-            {timer !== null && (
-                <div className="timer mt-3">
-                    <h4>⏳ Игра начнётся через: {timer} сек</h4>
-                    <div className="progress">
-                        <div className="progress-bar bg-primary" style={{ width: `${(timer / 5) * 100}%` }}></div>
-                    </div>
-                </div>
-            )}
+            <div className="players-list">
+                {players.length > 0 ? (
+                    players.map((playerId) => (
+                        <div key={playerId} className="player-card">
+                            <div className="player-avatar-placeholder">
+                                {playerId}
+                            </div>
+                            <h5>Игрок ID: {playerId}</h5>
+                        </div>
+                    ))
+                ) : (
+                    <p className="text-muted">Ожидаем игроков...</p>
+                )}
+            </div>
+
+            <div className="mt-4 text-center">
+                <button
+                    className="btn btn-secondary me-2"
+                    onClick={() => navigate(-1)}
+                >
+                    Назад
+                </button>
+                <button
+                    className="btn btn-primary"
+                    disabled={players.length < 2}
+                    onClick={() => navigate("/game", { state: { lobby: { ...lobby, players } } })}
+                >
+                    Начать игру
+                </button>
+            </div>
         </div>
     );
 };

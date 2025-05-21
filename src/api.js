@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const API_URL = "http://195.133.10.75:8000"; // Базовый URL вашего бэкенда
+const API_URL = "https://course.af.shvarev.com:443"; // Базовый URL вашего бэкенда
 
 const api = axios.create({
     baseURL: API_URL,

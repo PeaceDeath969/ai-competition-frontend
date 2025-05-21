@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from "react-router-dom";
 import Navbar from "./components/Navbar";
 import Home from "./pages/Home";
 import Login from "./pages/Login";
@@ -9,25 +9,42 @@ import GameLobby from "./pages/GameLobby";
 import BombermanGame from "./pages/BombermanGame";
 import useAuthStore from "./store/authStore";
 
-const Router = () => {
-    const { token } = useAuthStore(); // ✅ Проверяем токен
+const AppRoutes = () => {
+    const { token } = useAuthStore();
+    const location = useLocation();
+
+    const hideNavbar = location.pathname === "/login";
+
+    // Защищаем всё кроме логина
+    if (!token && location.pathname !== "/login") {
+        return <Navigate to="/login" replace />;
+    }
+    // Залогинен — не даём снова на логин
+    if (token && location.pathname === "/login") {
+        return <Navigate to="/" replace />;
+    }
 
     return (
-        <BrowserRouter>
-            <Navbar />
+        <>
+            {!hideNavbar && <Navbar />}
             <Routes>
-                <Route path="/" element={<Home />} />
                 <Route path="/login" element={<Login />} />
+                <Route path="/" element={<Home />} />
+                <Route path="/dashboard" element={<Dashboard />} />
+                <Route path="/profile" element={<Profile />} />
                 <Route path="/lobby-search" element={<LobbySearch />} />
                 <Route path="/game-lobby" element={<GameLobby />} />
                 <Route path="/game" element={<BombermanGame />} />
-
-                {/* ✅ Защищённые маршруты */}
-                <Route path="/dashboard" element={token ? <Dashboard /> : <Navigate to="/login" replace />} />
-                <Route path="/profile" element={token ? <Profile /> : <Navigate to="/login" replace />} />
+                <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
-        </BrowserRouter>
+        </>
     );
 };
+
+const Router = () => (
+    <BrowserRouter>
+        <AppRoutes />
+    </BrowserRouter>
+);
 
 export default Router;

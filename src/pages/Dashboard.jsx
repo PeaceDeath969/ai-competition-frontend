@@ -10,7 +10,7 @@ const Dashboard = () => {
         losses: 20,
         winrate: 60,
         rating: 1450,
-        ratingHistory: [1200, 1250, 1300, 1350, 1400, 1450], // 🔥 История рейтинга для графика
+        ratingHistory: [1200, 1250, 1300, 1350, 1400, 1450],
     });
 
     const [replays, setReplays] = useState([
@@ -19,10 +19,9 @@ const Dashboard = () => {
         { id: 3, opponent: "AI_Bot_3", date: "2024-03-05", result: "win", replayUrl: "/replays/match3.json" },
     ]);
 
-    const [filter, setFilter] = useState("all"); // Фильтр матчей
+    const [filter, setFilter] = useState("all");
 
     useEffect(() => {
-        // Здесь можно подгружать данные с API
     }, []);
 
     // Фильтрация матчей
@@ -76,7 +75,6 @@ const Dashboard = () => {
                 </div>
             </div>
 
-            {/* 🔥 График рейтинга ELO */}
             <div className="card p-4 mt-4 shadow">
                 <h5 className="text-center">📊 Динамика рейтинга</h5>
                 <Line

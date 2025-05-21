@@ -82,7 +82,6 @@ const Profile = () => {
         alert(t("profile.save_success"));
     };
 
-    // Проверка сложности пароля
     const checkPasswordStrength = (password) => {
         let strength = 0;
         if (password.length > 5) strength += 25;
@@ -103,7 +102,6 @@ const Profile = () => {
         }
     };
 
-    // 🔥 Функция смены пароля через API с подтверждением
     const handleChangePassword = async () => {
         setMessage("");
         setPasswordClass("");
@@ -151,7 +149,6 @@ const Profile = () => {
                         </button>
                     </div>
 
-                    {/* 🔵 Аватарка + Drag & Drop */}
                     <div className="card p-4 shadow">
                         <h2 className="text-center mb-3">{t("profile.title")}</h2>
                         <div className="text-center">
@@ -173,7 +170,6 @@ const Profile = () => {
                         </button>
                     </div>
 
-                    {/* 🔐 Форма смены пароля */}
                     <div className="card p-4 shadow mt-4">
                         <h4 className="text-center mb-3">🔐 Смена пароля</h4>
                         {message && <div className="alert alert-info">{message}</div>}
