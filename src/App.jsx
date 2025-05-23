@@ -15,7 +15,7 @@ const RouteLogger = () => {
 const App = () => {
     return (
         <Router>
-            <RouteLogger /> {/* ✅ Логируем маршруты */}
+            <RouteLogger /> {}
             <Routes>
                 <Route path="/" element={<Home />} />
                 <Route path="/lobby-search" element={<LobbySearch />} />

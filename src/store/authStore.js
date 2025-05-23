@@ -1,15 +1,21 @@
+// src/store/authStore.js
 import { create } from "zustand";
-import api from "../api"; // Подключаем API
-import qs from "qs"; // Кодирование для form-urlencoded
+import api from "../api";
+import qs from "qs";
 
 const useAuthStore = create((set) => ({
+    // Инициализация из localStorage
     user: JSON.parse(localStorage.getItem("user")) || null,
     token: localStorage.getItem("token") || null,
 
+    setUser: (user) => {
+        localStorage.setItem("user", JSON.stringify(user));
+        set({ user });
+    },
+
     login: async (email, password) => {
         try {
-            console.log("📤 Логин в API: /token", { email, password });
-
+            // Запрос токена
             const data = qs.stringify({
                 grant_type: "password",
                 username: email,
@@ -18,18 +24,20 @@ const useAuthStore = create((set) => ({
                 client_id: "",
                 client_secret: "",
             });
-
             const response = await api.post("/token", data, {
-                headers: {
-                    "Content-Type": "application/x-www-form-urlencoded"
-                },
+                headers: { "Content-Type": "application/x-www-form-urlencoded" },
             });
 
-            console.log("✅ Ответ API:", response.data);
-
             const { access_token } = response.data;
+            // Сохраняем токен
             localStorage.setItem("token", access_token);
             set({ token: access_token });
+
+            // Получаем профиль пользователя
+            const userResp = await api.get("/users/me");
+            const profile = userResp.data;
+            localStorage.setItem("user", JSON.stringify(profile));
+            set({ user: profile });
 
             return { success: true };
         } catch (error) {
@@ -41,17 +49,16 @@ const useAuthStore = create((set) => ({
     logout: () => {
         console.log("🔴 Выход пользователя");
         localStorage.removeItem("token");
-        set({ token: null });
+        localStorage.removeItem("user");
+        set({ token: null, user: null });
     },
 
     changePassword: async (oldPassword, newPassword) => {
         try {
             console.log("📤 Запрос на смену пароля...");
-
             const response = await api.put(
                 `/change_password?old_password=${oldPassword}&new_password=${newPassword}`
             );
-
             console.log("✅ Пароль успешно изменён:", response.data);
             return { success: true, message: "Пароль успешно изменён!" };
         } catch (error) {
