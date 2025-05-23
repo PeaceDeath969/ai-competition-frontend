@@ -9,19 +9,14 @@ const LobbySearch = () => {
     const navigate = useNavigate();
 
     useEffect(() => {
-        console.log("🔍 Начался поиск лобби...");
-
         const interval = setInterval(() => {
             setTimer((prev) => prev + 1);
         }, 1000);
 
-        // Через 5 секунд находим соперника и переходим в лобби
         const findOpponent = setTimeout(() => {
-            console.log("🎉 Соперник найден!");
             setStatus("found");
 
             setTimeout(() => {
-                console.log("➡ Переход в лобби...");
                 navigate("/game-lobby");
             }, 2000);
         }, 5000);
@@ -39,7 +34,9 @@ const LobbySearch = () => {
                     <>
                         <div className="loader"></div>
                         <h4 className="mt-3">🔍 Поиск лобби...</h4>
-                        <p className="timer-text">⏳ Время ожидания: <strong>{timer} сек</strong></p>
+                        <p className="timer-text">
+                            ⏳ Время ожидания: <strong>{timer} сек</strong>
+                        </p>
 
                         <div className="progress mt-2">
                             <div

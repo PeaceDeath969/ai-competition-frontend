@@ -1,11 +1,11 @@
-// src/components/Navbar.jsx
 import { Link, useNavigate } from "react-router-dom";
 import useAuthStore from "../store/authStore";
 import useThemeStore from "../store/themeStore";
+import api from "../api";
 import "bootstrap/dist/css/bootstrap.min.css";
 
 const Navbar = () => {
-    const { token, logout, user } = useAuthStore();
+    const { token, logout, user, setUser } = useAuthStore();
     const { theme, toggleTheme } = useThemeStore();
     const navigate = useNavigate();
 
@@ -14,6 +14,23 @@ const Navbar = () => {
     const handleLogout = () => {
         logout();
         navigate("/login");
+    };
+
+    const handleThemeToggle = async () => {
+        const newTheme = theme === "light" ? "dark" : "light";
+        toggleTheme();
+        try {
+            const payload = {
+                email: user.email,
+                username: user.username,
+                avatar: user.avatar,
+                theme: newTheme,
+            };
+            const res = await api.put("/update_profile", payload);
+            setUser(res.data);
+        } catch (err) {
+            console.error("Ошибка обновления темы на сервере:", err);
+        }
     };
 
     return (
@@ -35,7 +52,6 @@ const Navbar = () => {
                 </button>
                 <div className="collapse navbar-collapse" id="navbarNav">
                     <ul className="navbar-nav ms-auto align-items-center">
-                        {/* Имя пользователя слева от Главная */}
                         <li className="nav-item me-3">
                             <span className="navbar-text text-white">
                                 {user?.username}
@@ -49,6 +65,11 @@ const Navbar = () => {
                         <li className="nav-item">
                             <Link className="nav-link" to="/dashboard">
                                 Статистика
+                            </Link>
+                        </li>
+                        <li className="nav-item">
+                            <Link className="nav-link" to="/instructions">
+                                Инструкции
                             </Link>
                         </li>
                         <li className="nav-item dropdown">
@@ -75,7 +96,7 @@ const Navbar = () => {
                             </ul>
                         </li>
                         <li className="nav-item ms-3">
-                            <button className="btn btn-secondary" onClick={toggleTheme}>
+                            <button className="btn btn-secondary" onClick={handleThemeToggle}>
                                 {theme === "light" ? "🌙 Темная тема" : "☀️ Светлая тема"}
                             </button>
                         </li>

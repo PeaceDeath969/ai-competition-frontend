@@ -1,0 +1,30 @@
+.replay-cell {
+    border: 1px solid #555;
+    overflow: hidden;
+}
+
+.bomb-icon {
+    position: absolute;
+    top: 20%;
+    left: 20%;
+}
+
+.fire {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: orange;
+    opacity: 0.8;
+}
+
+.player {
+    position: absolute;
+    top: 15%;
+    left: 15%;
+    width: 70%;
+    height: 70%;
+    border-radius: 50%;
+    box-shadow: 0 0 5px rgba(0, 0, 0, 0.5);
+}

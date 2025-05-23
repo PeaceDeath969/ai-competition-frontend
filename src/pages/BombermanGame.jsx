@@ -1,112 +1,150 @@
-
-import { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useLocation } from "react-router-dom";
 import useAuthStore from "../store/authStore";
 import "./BombermanGame.css";
 
-const TILE_SIZE = 50;
-
+const CELL_SIZE = 50;
 const keyMap = {
     ArrowUp: "UP",
     ArrowDown: "DOWN",
     ArrowLeft: "LEFT",
     ArrowRight: "RIGHT",
-    Space: "BOMB"
+    Space: "BOMB",
 };
+const GRID_ROWS = 11;
+const GRID_COLS = 13;
+const createGrid = () =>
+    Array.from({ length: GRID_ROWS }, (_, y) =>
+        Array.from({ length: GRID_COLS }, (_, x) =>
+            y % 2 === 1 && x % 2 === 1 ? "WALL" : "EMPTY"
+        )
+    );
+
+const BombIcon = () => (
+    <svg
+        width={CELL_SIZE * 0.6}
+        height={CELL_SIZE * 0.6}
+        viewBox="0 0 64 64"
+        className="bomb-icon"
+    >
+        <circle cx="32" cy="32" r="24" fill="#000" />
+        <rect x="28" y="4" width="8" height="12" fill="#ffd700" />
+    </svg>
+);
 
 const BombermanGame = () => {
-    const location = useLocation();
-    const { lobby } = location.state || {};
-    const { token } = useAuthStore();
+    const { state } = useLocation();
+    const { lobby } = state || {};
+    const { token, user } = useAuthStore();
     const wsRef = useRef(null);
 
-    const [gameState, setGameState] = useState({
-        grid: [],
-        players: {},
-        bombs: [],
-        fire: []
-    });
-    // Устанавливаем WebSocket соединение и подписываемся на события
+    const [grid, setGrid] = useState(createGrid());
+    const [players, setPlayers] = useState({});
+    const [bombs, setBombs] = useState([]);
+    const [fire, setFire] = useState([]);
+    const [gameOver, setGameOver] = useState(false);
+    const [winnerId, setWinnerId] = useState(null);
+    const [draw, setDraw] = useState(false);
+
     useEffect(() => {
         if (!lobby) return;
-        const wsUrl = `wss://course.af.shvarev.com/ws/${lobby.id}?token=${token}`;
-        const ws = new WebSocket(wsUrl);
+        const ws = new WebSocket(
+            `wss://course.af.shvarev.com/ws/${lobby.id}?token=${token}`
+        );
         wsRef.current = ws;
 
-        ws.onopen = () => {
-            console.log("WebSocket connected");
-            // Если текущий пользователь хост, отправляем start_game
-            const storedUser = JSON.parse(localStorage.getItem("user")) || {};
-            if (storedUser.id === lobby.host_id) {
-                ws.send(JSON.stringify({ event: "start_game" }));
-            }
-        };
+        ws.onopen = () => console.log("WebSocket connected");
+        ws.onmessage = ({ data }) => {
+            const msg = JSON.parse(data);
 
-        ws.onmessage = (event) => {
-            const msg = JSON.parse(event.data);
-            // init_state или любое обновление с tick
             if (msg.event === "init_state" || msg.tick !== undefined) {
-                setGameState({
-                    grid: msg.grid,
-                    players: msg.players,
-                    bombs: msg.bombs || [],
-                    fire: msg.fire || []
-                });
+                setGrid(msg.grid);
+                setPlayers(msg.players);
+                setBombs(msg.bombs || []);
+                setFire(msg.fire || []);
+
+                const aliveEntries = Object.entries(msg.players).filter(
+                    ([, p]) => p.alive
+                );
+                if (aliveEntries.length === 0) {
+                    setGameOver(true);
+                    setDraw(true);
+                    setWinnerId(null);
+                } else if (aliveEntries.length === 1) {
+                    setGameOver(true);
+                    setDraw(false);
+                    setWinnerId(parseInt(aliveEntries[0][0], 10));
+                }
+            }
+
+            if (msg.result) {
+                setGameOver(true);
+                if (msg.result === "draw") {
+                    setDraw(true);
+                    setWinnerId(null);
+                } else {
+                    setDraw(false);
+                    setWinnerId(msg.winner_id);
+                }
             }
         };
 
-        ws.onerror = (err) => console.error("WebSocket error:", err);
+        ws.onerror = console.error;
         ws.onclose = () => console.log("WebSocket closed");
-
-        return () => {
-            ws.close();
-        };
+        return () => ws.close();
     }, [lobby, token]);
 
-    // Обработчик нажатий клавиш для управления
     useEffect(() => {
-        const handleKey = (e) => {
-            const action = keyMap[e.code];
-            if (action && wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
+        const handler = (e) => {
+            const action = keyMap[e.key] || keyMap[e.code];
+            if (action && wsRef.current?.readyState === WebSocket.OPEN) {
                 wsRef.current.send(JSON.stringify({ action }));
             }
         };
-
-        window.addEventListener("keydown", handleKey);
-        return () => window.removeEventListener("keydown", handleKey);
+        window.addEventListener("keydown", handler);
+        return () => window.removeEventListener("keydown", handler);
     }, []);
 
-    // Рендер сетки
     return (
         <div className="bomberman-container">
-            {gameState.grid.map((row, y) => (
+            {grid.map((row, y) => (
                 <div key={y} className="row">
-                    {row.map((cell, x) => {
-                        // Определяем присутствие объектов
-                        const isPlayer = Object.values(gameState.players).find(p => p.x === x && p.y === y);
-                        const isBomb = gameState.bombs.some(b => b.x === x && b.y === y);
-                        const isFire = gameState.fire.some(f => f.x === x && f.y === y);
-                        const classNames = ["cell"];
+                    {row.map((cellType, x) => {
+                        const entry = Object.entries(players).find(
+                            ([, p]) => p.x === x && p.y === y
+                        );
+                        const pid = entry ? parseInt(entry[0], 10) : null;
+                        const hasBomb = bombs.some((b) => b.x === x && b.y === y);
+                        const hasFire = fire.some((f) => f.x === x && f.y === y);
 
-                        if (isFire) classNames.push("fire");
-                        else if (isBomb) classNames.push("bomb");
-                        else if (cell === "DESTRUCTIBLE") classNames.push("destructible");
-                        else if (cell === "WALL") classNames.push("wall");
-                        else classNames.push("empty");
+                        const playerColor =
+                            pid !== null
+                                ? pid === user.id
+                                    ? "#1e88e5"
+                                    : "#e53935"
+                                : null;
 
                         return (
                             <div
                                 key={x}
-                                className={classNames.join(" ")}
-                                style={{ width: TILE_SIZE, height: TILE_SIZE }}
+                                className="replay-cell"
+                                style={{
+                                    width: CELL_SIZE,
+                                    height: CELL_SIZE,
+                                    background:
+                                        cellType === "WALL"
+                                            ? "#222"
+                                            : cellType === "DESTRUCTIBLE"
+                                                ? "#795548"
+                                                : "#333",
+                                }}
                             >
-                                {isPlayer && (
+                                {hasBomb && <BombIcon />}
+                                {hasFire && <div className="fire" />}
+                                {pid !== null && (
                                     <div
                                         className="player"
-                                        style={{
-                                            backgroundColor:
-                                                lobby.players.find(p => p.id === isPlayer.id)?.color || "red"
-                                        }}
+                                        style={{ backgroundColor: playerColor }}
                                     />
                                 )}
                             </div>
@@ -114,6 +152,18 @@ const BombermanGame = () => {
                     })}
                 </div>
             ))}
+
+            {gameOver && (
+                <div className="game-over-overlay">
+                    <div className="game-over-modal">
+                        {draw
+                            ? "Ничья!"
+                            : winnerId === user.id
+                                ? "Победа!"
+                                : "Поражение!"}
+                    </div>
+                </div>
+            )}
         </div>
     );
 };

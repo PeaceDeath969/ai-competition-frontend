@@ -35,6 +35,14 @@
   }
 }
 
+#root {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 2rem;
+  text-align: center;
+  background-color: var(--bg-color);
+  transition: background-color 0.5s ease-in-out;
+}
 .card {
   padding: 2em;
 }

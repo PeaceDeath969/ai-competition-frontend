@@ -1,54 +1,130 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import "bootstrap/dist/css/bootstrap.min.css";
 import { Line } from "react-chartjs-2";
 import "chart.js/auto";
+import api from "../api";
+import useAuthStore from "../store/authStore";
 
 const Dashboard = () => {
+    const { user } = useAuthStore();
+    const navigate = useNavigate();
+
     const [stats, setStats] = useState({
-        gamesPlayed: 50,
-        wins: 30,
-        losses: 20,
-        winrate: 60,
-        rating: 1450,
-        ratingHistory: [1200, 1250, 1300, 1350, 1400, 1450],
+        gamesPlayed: 0,
+        wins: 0,
+        losses: 0,
+        draws: 0,
+        winrate: 0,
+        rating: 0,
+        ratingHistory: [],
     });
 
-    const [replays, setReplays] = useState([
-        { id: 1, opponent: "AI_Bot_1", date: "2024-03-01", result: "win", replayUrl: "/replays/match1.json" },
-        { id: 2, opponent: "AI_Bot_2", date: "2024-03-02", result: "loss", replayUrl: "/replays/match2.json" },
-        { id: 3, opponent: "AI_Bot_3", date: "2024-03-05", result: "win", replayUrl: "/replays/match3.json" },
-    ]);
-
+    const [replays, setReplays] = useState([]);
     const [filter, setFilter] = useState("all");
 
     useEffect(() => {
-    }, []);
+        if (!user?.id) return;
 
-    // Фильтрация матчей
-    const filteredReplays = replays.filter(match => filter === "all" || match.result === filter);
+        setStats((prev) => ({
+            ...prev,
+            gamesPlayed: user.games_played,
+            rating: user.rating,
+        }));
+
+        api
+            .get("/users/me/matches", { params: { skip: 0, limit: 100000 } })
+            .then(({ data: matches }) => {
+                const wins = matches.filter((m) => m.winner_id === user.id).length;
+                const losses = matches.filter((m) => m.loser_id === user.id).length;
+                const draws = matches.filter((m) => m.result === "draw").length;
+                const total = matches.length;
+                const winrate = total ? Math.round((wins * 100) / total) : 0;
+
+                const sortedAsc = [...matches].sort((a, b) => a.id - b.id);
+                const eloChanges = sortedAsc.map((m) =>
+                    m.winner_id === user.id ? m.winner_elo_change : m.loser_elo_change
+                );
+                const totalDelta = eloChanges.reduce((sum, d) => sum + d, 0);
+                const initialRating = user.rating - totalDelta;
+                const ratingHistory = eloChanges.reduce(
+                    (hist, delta) => [...hist, hist[hist.length - 1] + delta],
+                    [initialRating]
+                );
+
+                setStats({
+                    gamesPlayed: user.games_played,
+                    rating: user.rating,
+                    wins,
+                    losses,
+                    draws,
+                    winrate,
+                    ratingHistory,
+                });
+
+                const sortedDesc = [...sortedAsc].reverse();
+                Promise.all(
+                    sortedDesc.map((m) =>
+                        api
+                            .get(`/replays/match/${m.id}`)
+                            .then((res) => res.data.created_at)
+                            .catch(() => "")
+                    )
+                ).then((dates) => {
+                    setReplays(
+                        sortedDesc.map((m, idx) => ({
+                            id: m.id,
+                            opponent:
+                                m.winner_id === user.id ? m.loser_id : m.winner_id,
+                            date: dates[idx]
+                                ? new Date(dates[idx]).toLocaleString()
+                                : "",
+                            result:
+                                m.result === "draw"
+                                    ? "draw"
+                                    : m.winner_id === user.id
+                                        ? "win"
+                                        : "loss",
+                        }))
+                    );
+                });
+            })
+            .catch((err) => {
+                console.error("❌ Не удалось загрузить матчи:", err);
+            });
+    }, [user]);
+
+    const filteredReplays = replays.filter(
+        (match) => filter === "all" || match.result === filter
+    );
 
     return (
         <div className="container mt-5">
             <h2 className="text-center mb-4">📊 Личная статистика</h2>
 
-            {/* Карточки статистики */}
             <div className="row">
-                <div className="col-md-4">
+                <div className="col-md-3">
                     <div className="card text-center p-3 shadow">
                         <h5>🎮 Сыграно игр</h5>
                         <h3>{stats.gamesPlayed}</h3>
                     </div>
                 </div>
-                <div className="col-md-4">
+                <div className="col-md-3">
                     <div className="card text-center p-3 shadow">
                         <h5>🏆 Побед</h5>
                         <h3 className="text-success">{stats.wins}</h3>
                     </div>
                 </div>
-                <div className="col-md-4">
+                <div className="col-md-3">
                     <div className="card text-center p-3 shadow">
                         <h5>❌ Поражений</h5>
                         <h3 className="text-danger">{stats.losses}</h3>
+                    </div>
+                </div>
+                <div className="col-md-3">
+                    <div className="card text-center p-3 shadow">
+                        <h5>🤝 Ничьих</h5>
+                        <h3 className="text-secondary">{stats.draws}</h3>
                     </div>
                 </div>
             </div>
@@ -79,13 +155,12 @@ const Dashboard = () => {
                 <h5 className="text-center">📊 Динамика рейтинга</h5>
                 <Line
                     data={{
-                        labels: ["1 неделя", "2 неделя", "3 неделя", "4 неделя", "5 неделя", "Сейчас"],
+                        labels: stats.ratingHistory.map((_, i) => `Матч ${i}`),
                         datasets: [
                             {
                                 label: "Рейтинг Elo",
                                 data: stats.ratingHistory,
                                 fill: false,
-                                borderColor: "#4caf50",
                                 tension: 0.4,
                             },
                         ],
@@ -93,25 +168,25 @@ const Dashboard = () => {
                 />
             </div>
 
-            {/* Реплеи матчей */}
             <div className="card p-4 mt-4 shadow">
                 <h5 className="text-center">🎥 Реплеи матчей</h5>
 
-                {/* Фильтр матчей */}
                 <div className="text-center mb-3">
-                    <button className="btn btn-outline-primary me-2" onClick={() => setFilter("all")}>
-                        Все матчи
+                    <button className="btn btn-outline-primary me-2" onClick={() => setFilter("all") }>
+                        Все
                     </button>
-                    <button className="btn btn-outline-success me-2" onClick={() => setFilter("win")}>
+                    <button className="btn btn-outline-success me-2" onClick={() => setFilter("win") }>
                         Победы
                     </button>
-                    <button className="btn btn-outline-danger" onClick={() => setFilter("loss")}>
+                    <button className="btn btn-outline-danger me-2" onClick={() => setFilter("loss") }>
                         Поражения
+                    </button>
+                    <button className="btn btn-outline-secondary" onClick={() => setFilter("draw") }>
+                        Ничьи
                     </button>
                 </div>
 
-                {/* Таблица матчей */}
-                <table className="table table-striped">
+                <table className="table table-striped replays-table">
                     <thead>
                     <tr>
                         <th>🆔</th>
@@ -124,15 +199,27 @@ const Dashboard = () => {
                     <tbody>
                     {filteredReplays.map((match) => (
                         <tr key={match.id}>
-                            <td>{match.id}</td>
-                            <td>{match.opponent}</td>
-                            <td>{match.date}</td>
-                            <td className={match.result === "win" ? "text-success" : "text-danger"}>
-                                {match.result === "win" ? "Победа" : "Поражение"}
+                            <td className="text-dark">{match.id}</td>
+                            <td className="text-dark">{match.opponent}</td>
+                            <td className="text-dark">{match.date}</td>
+                            <td
+                                className={
+                                    match.result === "win"
+                                        ? "text-success"
+                                        : match.result === "loss"
+                                            ? "text-danger"
+                                            : "text-secondary"
+                                }
+                            >
+                                {match.result === "win"
+                                    ? "Победа"
+                                    : match.result === "loss"
+                                        ? "Поражение"
+                                        : "Ничья"}
                             </td>
                             <td>
-                                <button className="btn btn-sm btn-primary">
-                                    🔍 Просмотр
+                                <button className="btn btn-sm btn-primary" onClick={() => navigate(`/replay/${match.id}`)}>
+                                    🔍
                                 </button>
                             </td>
                         </tr>

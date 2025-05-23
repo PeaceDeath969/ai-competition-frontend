@@ -5,10 +5,15 @@ const useThemeStore = create((set) => ({
     toggleTheme: () => {
         set((state) => {
             const newTheme = state.theme === "light" ? "dark" : "light";
-            localStorage.setItem("theme", newTheme); // Сохраняем выбор пользователя
+            localStorage.setItem("theme", newTheme);
             document.documentElement.setAttribute("data-theme", newTheme);
             return { theme: newTheme };
         });
+    },
+    setTheme: (newTheme) => {
+        set(() => ({ theme: newTheme }));
+        localStorage.setItem("theme", newTheme);
+        document.documentElement.setAttribute("data-theme", newTheme);
     },
 }));
 

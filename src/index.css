@@ -1,3 +1,17 @@
+html,
+body,
+#root {
+  min-height: 100vh;
+  margin: 0;
+  padding: 0;
+
+  background-color: var(--bg-color) !important;
+}
+
+html {
+  background-color: var(--bg-color);
+}
+
 :root {
   --bg-color: #ffffff;
   --text-color: #333;
@@ -24,6 +38,7 @@
   --dropzone-text: #aaa;
 }
 
+
 .password-strength {
   height: 5px;
   border-radius: 3px;
@@ -33,17 +48,17 @@
 
 .weak {
   width: 33%;
-  background-color: #e74c3c; /* Красный */
+  background-color: #e74c3c;
 }
 
 .medium {
   width: 66%;
-  background-color: #f39c12; /* Оранжевый */
+  background-color: #f39c12;
 }
 
 .strong {
   width: 100%;
-  background-color: #2ecc71; /* Зелёный */
+  background-color: #2ecc71;
 }
 
 
@@ -153,3 +168,74 @@ select:focus {
 body {
   animation: fadeTransition 0.5s ease-in-out;
 }
+
+
+html,
+body,
+#root,
+.container,
+.card,
+.navbar,
+.navbar-dark .navbar-brand,
+.navbar-dark .navbar-nav .nav-link,
+.navbar-text,
+.dropdown-item,
+.btn-link,
+.btn,
+.form-control,
+input,
+textarea,
+select,
+label,
+h1, h2, h3, h4, h5, h6,
+p, ul, li, table, th, td,
+code, pre {
+  color: var(--text-color) !important;
+}
+
+a {
+  color: var(--text-color) !important;
+  text-decoration: none;
+}
+
+.btn-link,
+.navbar-dark .btn-link {
+  color: var(--text-color) !important;
+}
+
+.navbar,
+.navbar-dark .navbar-brand,
+.navbar-dark .navbar-nav .nav-link,
+.navbar-dark .navbar-text,
+.navbar-dark .dropdown-item,
+.navbar-dark .btn-link {
+  color: #ffffff !important;
+}
+
+.navbar-dark .navbar-toggler-icon {
+  filter: invert(100%) !important;
+}
+
+
+.navbar-dark .dropdown-menu {
+  background-color: var(--card-bg) !important;
+}
+
+.navbar-dark .dropdown-menu .dropdown-item {
+  color: var(--text-color) !important;
+}
+
+.navbar-dark .dropdown-menu .dropdown-item:hover,
+.navbar-dark .dropdown-menu .dropdown-item:focus {
+  color: var(--text-color) !important;
+  background-color: rgba(0,0,0,0.05);
+}
+
+.replays-table td:nth-child(3) {
+  color: #000000 !important;
+}
+.replays-table td:nth-child(1),
+.replays-table td:nth-child(2) {
+  color: #000000 !important;
+}
+

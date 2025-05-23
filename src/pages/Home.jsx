@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../api";
@@ -11,7 +10,6 @@ const Home = () => {
     const [joinId, setJoinId] = useState("");
     const [error, setError] = useState("");
 
-    // Создание нового лобби
     const handleCreate = async () => {
         setError("");
         setLoading(true);
@@ -26,7 +24,6 @@ const Home = () => {
         }
     };
 
-    // Присоединение к существующему лобби
     const handleJoin = async () => {
         if (!joinId.trim()) {
             setError("Введите корректный ID игры");

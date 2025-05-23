@@ -1,24 +1,19 @@
-// src/pages/Profile.jsx
 import { useState, useEffect } from "react";
 import useAuthStore from "../store/authStore";
-import useThemeStore from "../store/themeStore";
 import api from "../api";
 import "bootstrap/dist/css/bootstrap.min.css";
 
 const Profile = () => {
     const { token, logout, user: storedUser, setUser, changePassword } = useAuthStore();
-    const { theme, toggleTheme } = useThemeStore();
 
     const [formData, setFormData] = useState({
         email: "",
         username: "",
         avatar: "",
-        theme: "",
     });
     const [avatarPreview, setAvatarPreview] = useState("");
     const [message, setMessage] = useState("");
 
-    // Состояние для смены пароля
     const [passwordData, setPasswordData] = useState({
         currentPassword: "",
         newPassword: "",
@@ -29,46 +24,52 @@ const Profile = () => {
     const [passwordMessage, setPasswordMessage] = useState("");
     const [passwordClass, setPasswordClass] = useState("");
 
-    // Загрузка данных профиля
     useEffect(() => {
         const fetchProfile = async () => {
             try {
-                const response = await api.get("/users/me");
-                const profile = response.data;
+                const res = await api.get("/users/me");
+                const profile = res.data;
                 setFormData({
                     email: profile.email,
                     username: profile.username,
                     avatar: profile.avatar,
-                    theme: profile.theme || theme,
                 });
                 setAvatarPreview(profile.avatar);
                 setUser(profile);
-            } catch (error) {
-                console.error("Ошибка загрузки профиля:", error);
+            } catch (err) {
+                console.error("Ошибка загрузки профиля:", err);
             }
         };
         fetchProfile();
-    }, [theme, setUser]);
+    }, [setUser]);
 
     const handleChange = (e) => {
         const { name, value } = e.target;
         setFormData((prev) => ({ ...prev, [name]: value }));
-        if (name === "theme") toggleTheme();
     };
 
-    const handleAvatarSelect = (e) => {
+    const handleAvatarSelect = async (e) => {
         const file = e.target.files[0];
-        if (file) {
-            const reader = new FileReader();
-            reader.onloadend = () => {
-                setAvatarPreview(reader.result);
-                setFormData((prev) => ({ ...prev, avatar: reader.result }));
-            };
-            reader.readAsDataURL(file);
+        if (!file) return;
+        setMessage("");
+        try {
+            const fd = new FormData();
+            fd.append("file", file);
+            const res = await api.post("/uploadfile", fd, {
+                headers: { "Content-Type": "multipart/form-data" },
+            });
+            const path = res.data.original_file;
+            const fullUrl = path.startsWith("http")
+                ? path
+                : `${api.defaults.baseURL.replace(/\/$/, "")}${path}`;
+            setAvatarPreview(fullUrl);
+            setFormData((p) => ({ ...p, avatar: fullUrl }));
+        } catch (err) {
+            console.error("Ошибка загрузки аватара:", err);
+            setMessage("Не удалось загрузить аватарку");
         }
     };
 
-    // Сохранение профиля: обновлённый URL
     const handleSaveProfile = async () => {
         setMessage("");
         try {
@@ -76,18 +77,16 @@ const Profile = () => {
                 email: formData.email,
                 username: formData.username,
                 avatar: formData.avatar,
-                theme: formData.theme,
             };
-            const response = await api.put("/update_profile", payload);
+            const res = await api.put("/update_profile", payload);
+            setUser(res.data);
             setMessage("Профиль успешно обновлён!");
-            setUser(response.data);
-        } catch (error) {
-            console.error("Ошибка обновления профиля:", error);
+        } catch (err) {
+            console.error("Ошибка обновления профиля:", err);
             setMessage("Не удалось сохранить изменения");
         }
     };
 
-    // Проверка сложности пароля
     const checkPasswordStrength = (password) => {
         let strength = 0;
         if (password.length > 5) strength += 25;
@@ -140,52 +139,92 @@ const Profile = () => {
                                 src={avatarPreview}
                                 alt="Avatar"
                                 className="rounded-circle avatar"
-                                style={{ width: "150px", height: "150px", objectFit: "cover" }}
+                                style={{ width: 150, height: 150, objectFit: "cover" }}
                             />
                         </div>
-
-                        {/* Поля профиля */}
                         <div className="mb-3">
                             <label className="form-label">Аватарка</label>
-                            <input type="file" accept="image/*" className="form-control" onChange={handleAvatarSelect} />
+                            <input
+                                type="file"
+                                accept="image/*"
+                                className="form-control"
+                                onChange={handleAvatarSelect}
+                            />
                         </div>
                         <div className="mb-3">
                             <label className="form-label">Имя пользователя</label>
-                            <input type="text" name="username" className="form-control" value={formData.username} onChange={handleChange} />
+                            <input
+                                type="text"
+                                name="username"
+                                className="form-control"
+                                value={formData.username}
+                                onChange={handleChange}
+                            />
                         </div>
                         <div className="mb-3">
                             <label className="form-label">Email</label>
-                            <input type="email" name="email" className="form-control" value={formData.email} onChange={handleChange} />
+                            <input
+                                type="email"
+                                name="email"
+                                className="form-control"
+                                value={formData.email}
+                                onChange={handleChange}
+                            />
                         </div>
-                        <div className="mb-3">
-                            <label className="form-label">Тема</label>
-                            <select name="theme" className="form-select" value={formData.theme} onChange={handleChange}>
-                                <option value="light">Светлая</option>
-                                <option value="dark">Тёмная</option>
-                            </select>
-                        </div>
-                        <button className="btn btn-primary w-100 mb-4" onClick={handleSaveProfile}>
+                        <button
+                            className="btn btn-primary w-100 mb-4"
+                            onClick={handleSaveProfile}
+                        >
                             Сохранить профиль
                         </button>
 
-                        {/* Смена пароля */}
                         <h4 className="text-center mb-3">🔐 Смена пароля</h4>
-                        {passwordMessage && <div className={`alert alert-info ${passwordClass}`}>{passwordMessage}</div>}
+                        {passwordMessage && (
+                            <div className={`alert alert-info ${passwordClass}`}>{passwordMessage}</div>
+                        )}
                         <div className="mb-3">
-                            <input type="password" className="form-control" placeholder="Текущий пароль" value={passwordData.currentPassword} onChange={e => setPasswordData(prev => ({ ...prev, currentPassword: e.target.value }))} />
-                        </div>
-                        <div className="mb-3">
-                            <input type="password" className="form-control" placeholder="Новый пароль" value={passwordData.newPassword} onChange={e => { setPasswordData(prev => ({ ...prev, newPassword: e.target.value })); checkPasswordStrength(e.target.value); }} />
+                            <input
+                                type="password"
+                                className="form-control mb-2"
+                                placeholder="Текущий пароль"
+                                value={passwordData.currentPassword}
+                                onChange={(e) =>
+                                    setPasswordData((p) => ({ ...p, currentPassword: e.target.value }))
+                                }
+                            />
+                            <input
+                                type="password"
+                                className="form-control mb-2"
+                                placeholder="Новый пароль"
+                                value={passwordData.newPassword}
+                                onChange={(e) => {
+                                    setPasswordData((p) => ({ ...p, newPassword: e.target.value }));
+                                    checkPasswordStrength(e.target.value);
+                                }}
+                            />
                             {passwordData.newPassword && (
                                 <div className="progress mt-2">
-                                    <div className={`progress-bar ${passwordColor}`} role="progressbar" style={{ width: `${passwordStrength}%` }} />
+                                    <div
+                                        className={`progress-bar ${passwordColor}`}
+                                        role="progressbar"
+                                        style={{ width: `${passwordStrength}%` }}
+                                    />
                                 </div>
                             )}
+                            <input
+                                type="password"
+                                className="form-control mt-2"
+                                placeholder="Подтвердите новый пароль"
+                                value={passwordData.confirmNewPassword}
+                                onChange={(e) =>
+                                    setPasswordData((p) => ({ ...p, confirmNewPassword: e.target.value }))
+                                }
+                            />
                         </div>
-                        <div className="mb-3">
-                            <input type="password" className="form-control" placeholder="Подтвердите новый пароль" value={passwordData.confirmNewPassword} onChange={e => setPasswordData(prev => ({ ...prev, confirmNewPassword: e.target.value }))} />
-                        </div>
-                        <button className="btn btn-warning w-100" onClick={handlePasswordChange}>
+                        <button
+                            className="btn btn-warning w-100"
+                            onClick={handlePasswordChange}
+                        >
                             Изменить пароль
                         </button>
                     </div>

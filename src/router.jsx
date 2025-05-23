@@ -2,24 +2,25 @@ import { BrowserRouter, Routes, Route, Navigate, useLocation } from "react-route
 import Navbar from "./components/Navbar";
 import Home from "./pages/Home";
 import Login from "./pages/Login";
+import Register from "./pages/Register";
 import Dashboard from "./pages/Dashboard";
 import Profile from "./pages/Profile";
 import LobbySearch from "./pages/LobbySearch";
 import GameLobby from "./pages/GameLobby";
 import BombermanGame from "./pages/BombermanGame";
+import Instructions from "./pages/Instructions";
+import ReplayViewer from "./pages/ReplayViewer";
 import useAuthStore from "./store/authStore";
 
 const AppRoutes = () => {
     const { token } = useAuthStore();
     const location = useLocation();
 
-    const hideNavbar = location.pathname === "/login";
+    const hideNavbar = ["/login", "/register"].includes(location.pathname);
 
-    // Защищаем всё кроме логина
-    if (!token && location.pathname !== "/login") {
+    if (!token && location.pathname !== "/login" && location.pathname !== "/register") {
         return <Navigate to="/login" replace />;
     }
-    // Залогинен — не даём снова на логин
     if (token && location.pathname === "/login") {
         return <Navigate to="/" replace />;
     }
@@ -29,12 +30,15 @@ const AppRoutes = () => {
             {!hideNavbar && <Navbar />}
             <Routes>
                 <Route path="/login" element={<Login />} />
+                <Route path="/register" element={<Register />} />
                 <Route path="/" element={<Home />} />
+                <Route path="/instructions" element={<Instructions />} />
                 <Route path="/dashboard" element={<Dashboard />} />
                 <Route path="/profile" element={<Profile />} />
                 <Route path="/lobby-search" element={<LobbySearch />} />
                 <Route path="/game-lobby" element={<GameLobby />} />
                 <Route path="/game" element={<BombermanGame />} />
+                <Route path="/replay/:matchId" element={<ReplayViewer />} />
                 <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
         </>
