@@ -17,7 +17,20 @@
     text-align: center;
 }
 
-/* Прогресс-бар таймера */
+.player-card {
+    align-items: center;
+    justify-content: flex-start;
+}
+
+
+.player-card h5 {
+    margin: 0;
+}
+
+.player-avatar-placeholder {
+    margin-right: 10px;
+}
+
 .progress {
     height: 20px;
     border-radius: 10px;
