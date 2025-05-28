@@ -14,11 +14,25 @@ const Home = () => {
         setError("");
         setLoading(true);
         try {
-            const response = await api.post("/create_lobby");
+            const response = await api.post("/create_lobby", { is_private: true });
             const lobby = response.data;
             navigate("/game-lobby", { state: { lobby } });
         } catch (e) {
             setError("Не удалось создать лобби");
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleQuickGame = async () => {
+        setError("");
+        setLoading(true);
+        try {
+            const response = await api.post("/quickgame");
+            const lobby = response.data;
+            navigate("/game-lobby", { state: { lobby } });
+        } catch (e) {
+            setError("Не удалось выполнить быстрый подбор игры");
         } finally {
             setLoading(false);
         }
@@ -51,13 +65,20 @@ const Home = () => {
 
                 {error && <div className="alert alert-danger mt-3">{error}</div>}
 
-                <div className="mt-4">
+                <div className="mt-4 d-flex justify-content-center gap-3">
                     <button
-                        className="btn btn-primary btn-lg me-3"
+                        className="btn btn-primary btn-lg"
                         onClick={handleCreate}
                         disabled={loading}
                     >
                         {loading ? "Пожалуйста, ждите…" : "🚀 Создать игру"}
+                    </button>
+                    <button
+                        className="btn btn-warning btn-lg"
+                        onClick={handleQuickGame}
+                        disabled={loading}
+                    >
+                        {loading ? "Пожалуйста, ждите…" : "⚡ Быстрая игра"}
                     </button>
                 </div>
 
