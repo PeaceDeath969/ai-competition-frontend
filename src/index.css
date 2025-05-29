@@ -231,11 +231,4 @@ a {
   background-color: rgba(0,0,0,0.05);
 }
 
-.replays-table td:nth-child(3) {
-  color: #000000 !important;
-}
-.replays-table td:nth-child(1),
-.replays-table td:nth-child(2) {
-  color: #000000 !important;
-}
 

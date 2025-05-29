@@ -5,10 +5,12 @@ import { Line } from "react-chartjs-2";
 import "chart.js/auto";
 import api from "../api";
 import useAuthStore from "../store/authStore";
+import useThemeStore from "../store/themeStore";
 
 const Dashboard = () => {
     const { user } = useAuthStore();
     const navigate = useNavigate();
+    const { theme } = useThemeStore();
 
     const [stats, setStats] = useState({
         gamesPlayed: 0,
@@ -186,7 +188,7 @@ const Dashboard = () => {
                     </button>
                 </div>
 
-                <table className="table table-striped replays-table">
+                <table className={`table table-striped ${theme === "dark" ? "table-dark" : "table-light"} replays-table`}>
                     <thead>
                     <tr>
                         <th>🆔</th>
@@ -199,9 +201,9 @@ const Dashboard = () => {
                     <tbody>
                     {filteredReplays.map((match) => (
                         <tr key={match.id}>
-                            <td className="text-dark">{match.id}</td>
-                            <td className="text-dark">{match.opponent}</td>
-                            <td className="text-dark">{match.date}</td>
+                            <td className={theme === "dark" ? "text-white" : "text-dark"}>{match.id}</td>
+                            <td className={theme === "dark" ? "text-white" : "text-dark"}>{match.opponent}</td>
+                            <td className={theme === "dark" ? "text-white" : "text-dark"}>{match.date}</td>
                             <td
                                 className={
                                     match.result === "win"
