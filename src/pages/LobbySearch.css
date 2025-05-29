@@ -19,6 +19,15 @@
     width: 320px;
 }
 
+
+.alert-info code {
+    color: #000 !important;
+}
+.invitation-code {
+    color: #000 !important;
+}
+
+
 .loader {
     width: 50px;
     height: 50px;

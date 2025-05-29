@@ -34,6 +34,17 @@
     text-align: center;
 }
 
+:root[data-theme="light"] input,
+:root[data-theme="light"] input::placeholder {
+    color: #000 !important;
+    opacity: 1 !important;
+}
+
+:root[data-theme="dark"] input,
+:root[data-theme="dark"] input::placeholder {
+    color: #fff !important;
+    opacity: 1 !important;
+}
 .hero-title {
     font-size: 3.5rem;
     font-weight: bold;
