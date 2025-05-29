@@ -12,9 +12,7 @@ const GameLobby = () => {
     const { lobby } = location.state || {};
 
     useEffect(() => {
-        if (!lobby) {
-            navigate("/");
-        }
+        if (!lobby) navigate("/");
     }, [lobby, navigate]);
 
     const [players, setPlayers] = useState(lobby?.players || []);
@@ -25,58 +23,50 @@ const GameLobby = () => {
 
         const fetchLobby = async () => {
             try {
-                const response = await api.post(`/join_lobby/${gameId}`);
-                setPlayers(response.data.players);
-            } catch (error) {
-                console.error("Ошибка обновления лобби:", error);
+                const { data } = await api.post(`/join_lobby/${gameId}`);
+                setPlayers(data.players);
+                console.log("Players:", data.players);
+            } catch {
+                // handle errors silently
             }
         };
 
         fetchLobby();
         const intervalId = setInterval(fetchLobby, POLL_INTERVAL);
-
         return () => clearInterval(intervalId);
     }, [gameId]);
-
-    const invitationLink = `${gameId}`;
 
     return (
         <div className="lobby-container">
             <h2 className="text-center mb-4">🏆 Лобби перед матчем</h2>
-
             <div className="alert alert-info text-center">
                 Пригласительный код:
                 <div className="mt-2">
-                    <code>{invitationLink}</code>
+                    <code>{gameId}</code>
                 </div>
             </div>
-
             <div className="players-list">
                 {players.length > 0 ? (
-                    players.map((playerId) => (
-                        <div key={playerId} className="player-card">
-                            <div className="player-avatar-placeholder">
-                                {playerId}
-                            </div>
-                            <h5>Игрок ID: {playerId}</h5>
+                    players.map((id) => (
+                        <div key={id} className="player-card">
+                            <div className="player-avatar-placeholder">{id}</div>
+                            <h5>Игрок ID: {id}</h5>
                         </div>
                     ))
                 ) : (
                     <p className="text-muted">Ожидаем игроков...</p>
                 )}
             </div>
-
             <div className="mt-4 text-center">
-                <button
-                    className="btn btn-secondary me-2"
-                    onClick={() => navigate(-1)}
-                >
+                <button className="btn btn-secondary me-2" onClick={() => navigate(-1)}>
                     Назад
                 </button>
                 <button
                     className="btn btn-primary"
                     disabled={players.length < 2}
-                    onClick={() => navigate("/game", { state: { lobby: { ...lobby, players } } })}
+                    onClick={() =>
+                        navigate("/game", { state: { lobby: { ...lobby, players } } })
+                    }
                 >
                     Начать игру
                 </button>

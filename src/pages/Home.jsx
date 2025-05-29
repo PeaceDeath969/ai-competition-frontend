@@ -13,11 +13,25 @@ const Home = () => {
     const handleCreate = async () => {
         setError("");
         setLoading(true);
+        const url = "/create_lobby";
+        console.log(`[${new Date().toISOString()}] Request: POST ${api.defaults.baseURL}${url} body: { is_private: true }`);
         try {
-            const response = await api.post("/create_lobby", { is_private: true });
+            const response = await api.post(url, { is_private: true });
+            console.log(
+                `[${new Date().toISOString()}] Response ${response.status} POST ${api.defaults.baseURL}${url}:`,
+                response.data
+            );
             const lobby = response.data;
             navigate("/game-lobby", { state: { lobby } });
         } catch (e) {
+            if (e.response) console.error(
+                `[${new Date().toISOString()}] Error response ${e.response.status} POST ${api.defaults.baseURL}${url}:`,
+                e.response.data
+            );
+            else console.error(
+                `[${new Date().toISOString()}] Network or CORS error POST ${api.defaults.baseURL}${url}:`,
+                e.message
+            );
             setError("Не удалось создать лобби");
         } finally {
             setLoading(false);
@@ -27,11 +41,25 @@ const Home = () => {
     const handleQuickGame = async () => {
         setError("");
         setLoading(true);
+        const url = "/quickgame";
+        console.log(`[${new Date().toISOString()}] Request: POST ${api.defaults.baseURL}${url}`);
         try {
-            const response = await api.post("/quickgame");
+            const response = await api.post(url);
+            console.log(
+                `[${new Date().toISOString()}] Response ${response.status} POST ${api.defaults.baseURL}${url}:`,
+                response.data
+            );
             const lobby = response.data;
             navigate("/game-lobby", { state: { lobby } });
         } catch (e) {
+            if (e.response) console.error(
+                `[${new Date().toISOString()}] Error response ${e.response.status} POST ${api.defaults.baseURL}${url}:`,
+                e.response.data
+            );
+            else console.error(
+                `[${new Date().toISOString()}] Network or CORS error POST ${api.defaults.baseURL}${url}:`,
+                e.message
+            );
             setError("Не удалось выполнить быстрый подбор игры");
         } finally {
             setLoading(false);
@@ -45,11 +73,25 @@ const Home = () => {
         }
         setError("");
         setLoading(true);
+        const url = `/join_lobby/${joinId}`;
+        console.log(`[${new Date().toISOString()}] Request: POST ${api.defaults.baseURL}${url}`);
         try {
-            const response = await api.post(`/join_lobby/${joinId}`);
+            const response = await api.post(url);
+            console.log(
+                `[${new Date().toISOString()}] Response ${response.status} POST ${api.defaults.baseURL}${url}:`,
+                response.data
+            );
             const lobby = response.data;
             navigate("/game-lobby", { state: { lobby } });
         } catch (e) {
+            if (e.response) console.error(
+                `[${new Date().toISOString()}] Error response ${e.response.status} POST ${api.defaults.baseURL}${url}:`,
+                e.response.data
+            );
+            else console.error(
+                `[${new Date().toISOString()}] Network or CORS error POST ${api.defaults.baseURL}${url}:`,
+                e.message
+            );
             setError("Не удалось присоединиться к лобби");
         } finally {
             setLoading(false);
