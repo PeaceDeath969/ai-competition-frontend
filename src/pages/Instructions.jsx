@@ -94,6 +94,7 @@ const Instructions = () => {
                     <li><code>DOWN</code></li>
                     <li><code>LEFT</code></li>
                     <li><code>RIGHT</code></li>
+                    <li><code>STAY</code></li>
                     <li><code>BOMB</code></li>
                 </ul>
             </section>
