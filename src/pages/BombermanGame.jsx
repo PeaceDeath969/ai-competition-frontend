@@ -56,13 +56,11 @@ const BombermanGame = () => {
         ws.onopen = () => console.log("WebSocket connected");
         ws.onmessage = ({ data }) => {
             const msg = JSON.parse(data);
-
             if (msg.event === "init_state" || msg.tick !== undefined) {
                 setGrid(msg.grid);
                 setPlayers(msg.players);
                 setBombs(msg.bombs || []);
                 setFire(msg.fire || []);
-
                 const aliveEntries = Object.entries(msg.players).filter(
                     ([, p]) => p.alive
                 );
@@ -76,7 +74,6 @@ const BombermanGame = () => {
                     setWinnerId(parseInt(aliveEntries[0][0], 10));
                 }
             }
-
             if (msg.result) {
                 setGameOver(true);
                 if (msg.result === "draw") {
@@ -88,7 +85,6 @@ const BombermanGame = () => {
                 }
             }
         };
-
         ws.onerror = console.error;
         ws.onclose = () => console.log("WebSocket closed");
         return () => ws.close();
@@ -105,8 +101,25 @@ const BombermanGame = () => {
         return () => window.removeEventListener("keydown", handler);
     }, []);
 
+    const wsUrl = lobby ? `wss://course.af.shvarev.com/ws/${lobby.id}?token=${token}` : "";
+
     return (
-        <div className="bomberman-container">
+        <div className="bomberman-container" style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
+            <div className="instructions-section">
+                <h4 style={{ color: "#fff" }}>Отправка действий</h4>
+                <p style={{ color: "#fff" }}>
+                    Чтобы совершить ход, отправьте сообщение с вашим <code>player_id</code>, токеном и ID лобби:
+                </p>
+                <pre style={{ backgroundColor: "#333", color: "#fff", padding: "10px", borderRadius: "4px" }}>
+                    <code>{`{ "action": "UP"}`}</code>
+                </pre>
+                <p style={{ color: "#fff" }}>
+                    Допустимые значения <code>action</code>: <code>UP</code>, <code>DOWN</code>, <code>LEFT</code>, <code>RIGHT</code>, <code>STAY</code>, <code>BOMB</code>
+                </p>
+                <p style={{ color: "#fff" }}>
+                    WebSocket URL для отправки действий: <code>{wsUrl}</code>
+                </p>
+            </div>
             {grid.map((row, y) => (
                 <div key={y} className="row">
                     {row.map((cellType, x) => {
@@ -116,14 +129,12 @@ const BombermanGame = () => {
                         const pid = entry ? parseInt(entry[0], 10) : null;
                         const hasBomb = bombs.some((b) => b.x === x && b.y === y);
                         const hasFire = fire.some((f) => f.x === x && f.y === y);
-
                         const playerColor =
                             pid !== null
                                 ? pid === user.id
                                     ? "#1e88e5"
                                     : "#e53935"
                                 : null;
-
                         return (
                             <div
                                 key={x}
@@ -140,13 +151,12 @@ const BombermanGame = () => {
                                 }}
                             >
                                 {hasBomb && <BombIcon />}
-                                {hasFire && <div className="fire" />}
-                                {pid !== null && (
-                                    <div
-                                        className="player"
-                                        style={{ backgroundColor: playerColor }}
-                                    />
-                                )}
+                                {hasFire && <div className="fire" />}                                {pid !== null && (
+                                <div
+                                    className="player"
+                                    style={{ backgroundColor: playerColor }}
+                                />
+                            )}
                             </div>
                         );
                     })}
