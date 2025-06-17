@@ -116,7 +116,7 @@ const ReplayViewer = () => {
                                         className="player"
                                         style={{
                                             backgroundColor:
-                                                playerId === "0" ? "#e53935" : "#1e88e5",
+                                                playerId === "0" ? "#1e88e5" : "#e53935",
                                         }}
                                     />
                                 )}

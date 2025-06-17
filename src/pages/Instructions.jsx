@@ -86,7 +86,7 @@ const Instructions = () => {
                     действием:
                 </p>
                 <pre>
-          <code>{`{"player_id": "<ваш_id>", "action": "UP"}`}</code>
+          <code>{`{"action": "UP"}`}</code>
         </pre>
                 <p>Допустимые значения <code>action</code>:</p>
                 <ul>
