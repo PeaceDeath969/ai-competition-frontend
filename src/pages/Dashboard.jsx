@@ -24,6 +24,7 @@ const Dashboard = () => {
 
     const [replays, setReplays] = useState([]);
     const [filter, setFilter] = useState("all");
+    const [topPlayers, setTopPlayers] = useState([]);
 
     useEffect(() => {
         if (!user?.id) return;
@@ -93,6 +94,13 @@ const Dashboard = () => {
             })
             .catch((err) => {
                 console.error("❌ Не удалось загрузить матчи:", err);
+            });
+
+        api
+            .get("/users/top", { params: { limit: 10 } })
+            .then(({ data }) => setTopPlayers(data))
+            .catch((err) => {
+                console.error("❌ Не удалось загрузить топ игроков:", err);
             });
     }, [user]);
 
@@ -174,16 +182,16 @@ const Dashboard = () => {
                 <h5 className="text-center">🎥 Реплеи матчей</h5>
 
                 <div className="text-center mb-3">
-                    <button className="btn btn-outline-primary me-2" onClick={() => setFilter("all") }>
+                    <button className="btn btn-outline-primary me-2" onClick={() => setFilter("all")}>
                         Все
                     </button>
-                    <button className="btn btn-outline-success me-2" onClick={() => setFilter("win") }>
+                    <button className="btn btn-outline-success me-2" onClick={() => setFilter("win")}>
                         Победы
                     </button>
-                    <button className="btn btn-outline-danger me-2" onClick={() => setFilter("loss") }>
+                    <button className="btn btn-outline-danger me-2" onClick={() => setFilter("loss")}>
                         Поражения
                     </button>
-                    <button className="btn btn-outline-secondary" onClick={() => setFilter("draw") }>
+                    <button className="btn btn-outline-secondary" onClick={() => setFilter("draw")}>
                         Ничьи
                     </button>
                 </div>
@@ -213,17 +221,37 @@ const Dashboard = () => {
                                             : "text-secondary"
                                 }
                             >
-                                {match.result === "win"
-                                    ? "Победа"
-                                    : match.result === "loss"
-                                        ? "Поражение"
-                                        : "Ничья"}
+                                {match.result === "win" ? "Победа" : match.result === "loss" ? "Поражение" : "Ничья"}
                             </td>
                             <td>
                                 <button className="btn btn-sm btn-primary" onClick={() => navigate(`/replay/${match.id}`)}>
                                     🔍
                                 </button>
                             </td>
+                        </tr>
+                    ))}
+                    </tbody>
+                </table>
+            </div>
+
+            <div className="card p-4 mt-4 shadow">
+                <h5 className="text-center"> Топ 10 игроков по рейтингу</h5>
+                <table className={`table table-striped ${theme === "dark" ? "table-dark" : "table-light"}`}>
+                    <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>👤 Ник</th>
+                        <th>📊 Elo</th>
+                        <th>🎮 Игры</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {topPlayers.map((player, index) => (
+                        <tr key={player.id}>
+                            <td>{index + 1}</td>
+                            <td>{player.username}</td>
+                            <td>{player.rating}</td>
+                            <td>{player.games_played}</td>
                         </tr>
                     ))}
                     </tbody>
